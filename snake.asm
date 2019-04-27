@@ -15,40 +15,68 @@ menu:
 
 menuwait:
 
-jmp menuwait
 
-box:    mov bx,resola[2]    ;calculate the gamebox size
+open:
+;__________________________________________________
+;draw boxboader
+		mov ax,disMod[0]
+		mov bx,disMod[2]
+		;int 10H
+		
+		mov cx,0
+		mov dx,0
+		mov ah,0CH
+		mov al,backcolor
+		
+ground:	int 10H
+		inc cx
+		cmp cx,resolx
+		jb ground
+		mov cx,0
+		inc dx
+		cmp dx,resoly
+		jb ground
+;__________________________________________________
+;boxinit
+		mov bx,resoly   ;calculate the gamebox size
         mov ax,bx
         div cellsize
         mov winWidth,ax
         mov widHeight,ax
-        shl dx,1
-        mov boundary[4],dx
-        mov boundary[6],bx
-        sub boundary[6],dx
-        mov bx,boundary[6]
-        sub bx,dx
-        mov ax,resola[0]
-        sub ax,bx
-        shl ax,1
-        mov boundary[0],ax
-        add ax,bx
-        mov boundary[2],ax
-        
-
-;==================================================
+		mul cellsize
+		mov bx,ax
+		shr dx,1
+		mov cx,dx
+		dec cx
+		mov boundary[4],cx
+		add bx,dx
+		mov boundary[6],bx
+		mov bx,resolx
+		sub bx,ax
+		shr bx,1
+		add ax,bx
+		mov boundary[2],ax
+		dec bx
+		mov boundary[0],bx
+		
+		
 ;game controller
 ;==================================================
 game:
 
-jmp game
+		mov ax,4C00H
+		int 21H
+
 code    ends
 ;==================================================
 ;maindata
 ;==================================================
 maindata    segment
     disMod      dw 4F02H,107H   ;displaymodedata
-    resola      dw 1280,1024
+	backcolor	db 0
+	frontcolor	db 0FFH
+    resolx      dw 1280
+	resoly		dw 1080
     cellsize    dw 50           ;cell
     winWidth    dw 0            ;cell snake size
     widHeight   dw 0
@@ -58,16 +86,14 @@ maindata    ends
 ;subpro area
 ;==================================================
 subdata     segment
-    startP  dw 0,0               ;snake start point
-    overP   dw 0,0               ;snake end point
+    ending	dw 4               ;snake end point
     vector  dw 1,0               ;snake forward orientation
+	skbody	dw 441 dup(0)
 subdata     ends
-
-
 ;==================================================
 ;main stack
 ;==================================================
 stack   segment
-    db  1000 dup(0)
+    db  128 dup(0)
 stack   ends
 end     start
